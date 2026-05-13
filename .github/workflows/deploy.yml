@@ -1,0 +1,50 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Allow manual deployment from the Actions tab
+  workflow_dispatch:
+
+# Permissions required by actions/deploy-pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one deployment at a time. Don't cancel an in-progress deploy
+# (Pages doesn't tolerate concurrent deploys well).
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build site artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify entries.json is valid
+        run: |
+          python3 -c "import json, sys; json.load(open('entries.json')); print('entries.json: OK')"
+
+      - uses: actions/configure-pages@v5
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Whole repo root is the site. Excludes are configured in
+          # .github/upload-pages-ignore (or via .gitignore patterns).
+          path: '.'
+
+  deploy:
+    name: Deploy to Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

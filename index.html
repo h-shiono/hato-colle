@@ -4,13 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ハトコレ — A GNSS-tagged pigeon collection by hato.gnss</title>
+
+  <!-- Set theme before paint to avoid flash -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('hato-colle-theme');
+        var theme = (saved === 'light' || saved === 'dark') ? saved
+          : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..700,0..100&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    :root {
+    /* ============================================================
+       LIGHT THEME (default) — parchment + warm rust + deep moss
+       ============================================================ */
+    :root, [data-theme="light"] {
       --bg: #efe7d5;
       --bg-paper: #f6efde;
       --bg-elevated: #fbf6e9;
@@ -24,6 +42,35 @@
       --gray: #888888;
       --line: #cdb98e;
       --line-soft: #e0d4b0;
+      --shadow-popup: 0 6px 24px rgba(40, 30, 15, 0.18);
+      --shadow-card:  0 1px 3px rgba(0, 0, 0, 0.2);
+      --bg-glow-a: rgba(180, 150, 100, 0.10);
+      --bg-glow-b: rgba(180, 130, 80, 0.08);
+      --tile-filter: sepia(0.22) saturate(0.55) brightness(1.02) hue-rotate(-10deg);
+    }
+
+    /* ============================================================
+       DARK THEME — rock pigeon (ドバト): slate body + iridescent neck
+       ============================================================ */
+    [data-theme="dark"] {
+      --bg: #1a1c20;
+      --bg-paper: #25272d;
+      --bg-elevated: #2e3138;
+      --ink: #dcd6c8;
+      --ink-soft: #9c9890;
+      --ink-faint: #6a665e;
+      --rust: #b083d6;        /* iridescent neck purple */
+      --moss: #5dd687;        /* iridescent neck green */
+      --sky: #7a98b5;
+      --gold: #c4a570;
+      --gray: #828282;
+      --line: #3d4048;
+      --line-soft: #2c2f35;
+      --shadow-popup: 0 8px 28px rgba(0, 0, 0, 0.5);
+      --shadow-card:  0 1px 3px rgba(0, 0, 0, 0.5);
+      --bg-glow-a: rgba(176, 131, 214, 0.07);  /* purple shimmer */
+      --bg-glow-b: rgba(93, 214, 135, 0.05);   /* green shimmer */
+      --tile-filter: brightness(0.92) saturate(0.65);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,9 +82,10 @@
       background: var(--bg);
       color: var(--ink);
       background-image:
-        radial-gradient(ellipse at 15% 85%, rgba(180, 150, 100, 0.10) 0%, transparent 55%),
-        radial-gradient(ellipse at 85% 15%, rgba(180, 130, 80, 0.08) 0%, transparent 55%);
+        radial-gradient(ellipse at 15% 85%, var(--bg-glow-a) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 15%, var(--bg-glow-b) 0%, transparent 55%);
       overflow: hidden;
+      transition: background-color 0.3s, color 0.3s;
     }
 
     .container {
@@ -46,6 +94,7 @@
       height: 100vh;
     }
 
+    /* Header */
     header {
       padding: 1.75rem 2.5rem 1.25rem;
       border-bottom: 1px solid var(--line);
@@ -54,6 +103,7 @@
       justify-content: space-between;
       background: var(--bg-paper);
       position: relative;
+      transition: background-color 0.3s, border-color 0.3s;
     }
     header::after {
       content: '';
@@ -87,7 +137,10 @@
     .masthead .subtitle .dot { color: var(--rust); margin: 0 0.4em; }
 
     .meta {
-      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.7rem;
       color: var(--ink-soft);
@@ -98,13 +151,37 @@
       font-variation-settings: 'opsz' 60, 'wght' 600, 'SOFT' 30;
       font-size: 2rem;
       color: var(--ink);
-      display: block;
       line-height: 1;
-      margin-bottom: 0.3rem;
     }
     .meta .breakdown { letter-spacing: 0.05em; }
     .meta .breakdown .sep { color: var(--line); margin: 0 0.5em; }
 
+    /* Theme toggle */
+    .theme-toggle {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--ink-soft);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fraunces', serif;
+      font-size: 0.95rem;
+      line-height: 1;
+      transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
+      padding: 0;
+    }
+    .theme-toggle:hover {
+      background: var(--bg-elevated);
+      color: var(--rust);
+      border-color: var(--rust);
+      transform: rotate(15deg);
+    }
+
+    /* Main */
     main {
       display: grid;
       grid-template-columns: 300px 1fr;
@@ -117,6 +194,7 @@
       padding: 1.75rem 1.75rem 2rem;
       border-right: 1px solid var(--line);
       overflow-y: auto;
+      transition: background-color 0.3s, border-color 0.3s;
     }
     aside h2 {
       font-family: 'JetBrains Mono', monospace;
@@ -145,7 +223,7 @@
       border-radius: 50%;
       flex-shrink: 0;
       border: 1.5px solid var(--bg-paper);
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.15);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.25);
     }
     .legend .accuracy {
       margin-left: auto;
@@ -168,10 +246,7 @@
       align-items: baseline;
       gap: 0.4rem;
     }
-    .species-group-head .total {
-      color: var(--ink-faint);
-      opacity: 0.7;
-    }
+    .species-group-head .total { opacity: 0.7; }
     .species-item {
       display: grid;
       grid-template-columns: 16px 1fr auto;
@@ -184,7 +259,7 @@
       transition: background 0.15s;
       user-select: none;
     }
-    .species-item:hover { background: rgba(176, 74, 44, 0.07); }
+    .species-item:hover { background: var(--bg-elevated); }
     .species-item input[type="checkbox"] {
       accent-color: var(--rust);
       width: 14px;
@@ -220,7 +295,6 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.65rem;
       color: var(--ink-faint);
-      letter-spacing: 0.03em;
     }
 
     /* Avatars */
@@ -235,7 +309,7 @@
       cursor: pointer;
       margin-bottom: 0.2rem;
     }
-    .avatars li:hover { background: rgba(176, 74, 44, 0.07); }
+    .avatars li:hover { background: var(--bg-elevated); }
     .avatars .platform {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.6rem;
@@ -246,8 +320,12 @@
       letter-spacing: 0.08em;
       flex-shrink: 0;
     }
-    .avatars .platform.gh { background: var(--moss); }
-    .avatars .platform.ze { background: var(--rust); }
+    .avatars .platform.gh { background: var(--moss); color: var(--bg-paper); }
+    .avatars .platform.ze { background: var(--rust); color: var(--bg-paper); }
+    [data-theme="dark"] .avatars .platform.gh,
+    [data-theme="dark"] .avatars .platform.ze {
+      color: var(--bg);  /* dark text on bright accent in dark mode */
+    }
     .avatars .platform.x { background: var(--ink); }
     .avatars .bird {
       font-family: 'Fraunces', 'Hiragino Mincho ProN', serif;
@@ -273,9 +351,7 @@
       background: var(--bg);
       font-family: 'Fraunces', 'Hiragino Mincho ProN', serif;
     }
-    .leaflet-tile-pane {
-      filter: sepia(0.22) saturate(0.55) brightness(1.02) hue-rotate(-10deg);
-    }
+    .leaflet-tile-pane { filter: var(--tile-filter); }
     .leaflet-control-zoom a {
       background: var(--bg-paper) !important;
       color: var(--ink) !important;
@@ -285,18 +361,25 @@
     }
     .leaflet-control-zoom a:hover { background: var(--bg-elevated) !important; }
     .leaflet-control-attribution {
-      background: rgba(246, 239, 222, 0.85) !important;
+      background: rgba(0, 0, 0, 0) !important;
+      backdrop-filter: blur(4px);
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.6rem !important;
       color: var(--ink-soft) !important;
     }
     .leaflet-control-attribution a { color: var(--rust) !important; }
+    [data-theme="light"] .leaflet-control-attribution {
+      background: rgba(246, 239, 222, 0.85) !important;
+    }
+    [data-theme="dark"] .leaflet-control-attribution {
+      background: rgba(37, 39, 45, 0.85) !important;
+    }
 
     .hato-marker {
       width: 22px; height: 22px;
       border-radius: 50%;
       border: 2px solid var(--bg-paper);
-      box-shadow: 0 2px 5px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.2);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -320,7 +403,7 @@
     .leaflet-popup-content-wrapper {
       background: var(--bg-elevated);
       border-radius: 1px;
-      box-shadow: 0 6px 24px rgba(40, 30, 15, 0.18), 0 0 0 1px var(--line);
+      box-shadow: var(--shadow-popup), 0 0 0 1px var(--line);
       padding: 0;
       overflow: hidden;
     }
@@ -330,6 +413,7 @@
       font-family: 'Fraunces', 'Hiragino Mincho ProN', serif;
       font-variation-settings: 'opsz' 14, 'SOFT' 30;
       line-height: 1.4;
+      color: var(--ink);
     }
     .leaflet-popup-tip {
       background: var(--bg-elevated);
@@ -351,8 +435,7 @@
       border-bottom: 1px solid var(--line);
     }
     .popup-photo img {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       object-fit: cover;
       display: block;
     }
@@ -382,7 +465,6 @@
     }
 
     .popup-body { padding: 1rem 1.25rem 1.1rem; }
-
     .popup-no {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.62rem;
@@ -400,6 +482,7 @@
       line-height: 1.15;
       letter-spacing: -0.01em;
       margin-bottom: 0.35rem;
+      color: var(--ink);
     }
     .popup-species {
       font-size: 0.72rem;
@@ -431,6 +514,7 @@
       letter-spacing: 0.05em;
       margin-right: 0.3em;
     }
+    [data-theme="dark"] .popup-meta dd .pos-badge { color: var(--bg); }
 
     .popup-usedas {
       margin-top: 0.7rem;
@@ -459,6 +543,8 @@
     }
     .popup-usedas .badge.gh { background: var(--moss); }
     .popup-usedas .badge.ze { background: var(--rust); }
+    [data-theme="dark"] .popup-usedas .badge.gh,
+    [data-theme="dark"] .popup-usedas .badge.ze { color: var(--bg); }
     .popup-usedas .badge.x { background: var(--ink); }
 
     .popup-notes {
@@ -491,6 +577,7 @@
       border-top: 1px solid var(--line);
       padding: 1.1rem 2.5rem 0.9rem;
       position: relative;
+      transition: background-color 0.3s, border-color 0.3s;
     }
     .timeline-head {
       display: flex;
@@ -521,7 +608,8 @@
       top: 50%;
       left: 0; right: 0;
       height: 1px;
-      background: var(--line);
+      background: var(--moss);
+      opacity: 0.55;
     }
     .timeline-tick {
       position: absolute;
@@ -543,7 +631,8 @@
       transform: translateX(-50%);
       width: 1px;
       height: 6px;
-      background: var(--line);
+      background: var(--moss);
+      opacity: 0.55;
     }
     .timeline-dot {
       position: absolute;
@@ -555,12 +644,12 @@
       border: 2px solid var(--bg-paper);
       cursor: pointer;
       transition: transform 0.15s, box-shadow 0.15s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      box-shadow: var(--shadow-card);
     }
     .timeline-dot:hover {
       transform: translate(-50%, -50%) scale(1.5);
       z-index: 10;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
     }
     .timeline-dot.other {
       background: var(--bg-paper) !important;
@@ -581,13 +670,14 @@
       white-space: nowrap;
       border: 1px solid var(--line);
       border-radius: 1px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.15s;
     }
     .timeline-dot:hover::after { opacity: 1; }
 
+    /* Footer */
     footer {
       padding: 0.85rem 2.5rem;
       border-top: 1px solid var(--line);
@@ -599,6 +689,7 @@
       align-items: center;
       background: var(--bg-paper);
       letter-spacing: 0.05em;
+      transition: background-color 0.3s, border-color 0.3s;
     }
     footer a { color: var(--rust); text-decoration: none; }
     footer a:hover { text-decoration: underline; }
@@ -609,6 +700,7 @@
       color: var(--ink-faint);
     }
 
+    /* Status overlay */
     .status-overlay {
       position: fixed;
       inset: 0;
@@ -640,12 +732,13 @@
       border-radius: 1px;
     }
 
+    /* Responsive */
     @media (max-width: 768px) {
       body { overflow: auto; }
       .container { height: auto; min-height: 100vh; }
       header { padding: 1.25rem 1.25rem 1rem; flex-direction: column; align-items: flex-start; gap: 0.9rem; }
       .masthead h1 { font-size: 2.2rem; }
-      .meta { text-align: left; }
+      .meta { align-items: flex-start; }
       .meta .count { font-size: 1.5rem; }
       main { grid-template-columns: 1fr; }
       aside.controls { padding: 1.25rem; border-right: none; border-bottom: 1px solid var(--line); }
@@ -665,10 +758,13 @@
       <div class="masthead">
         <h1>ハトコレ<span class="glyph">🕊️</span></h1>
         <div class="subtitle">
-          A GNSS-tagged pigeon collection <span class="dot">·</span> by hato.gnss
+          A GNSS-tagged pigeon collection <span class="dot">·</span> Named hato by my uncle <span class="dot">·</span> by hato.gnss
         </div>
       </div>
       <div class="meta">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme" title="Toggle light / dark">
+          <span id="theme-icon">☾</span>
+        </button>
         <span class="count" id="entry-count">—</span>
         <span class="breakdown" id="entry-breakdown">loading…</span>
       </div>
@@ -714,7 +810,7 @@
 
     <footer>
       <span><span class="compass">N</span> · hato.gnss · 2026</span>
-      <span>source: <a href="https://github.com/hatognss/hato-colle">github.com/hatognss/hato-colle</a></span>
+      <span>source: <a href="https://github.com/h-shiono/hato-colle">github.com/hatognss/hato-colle</a></span>
     </footer>
   </div>
 
@@ -726,29 +822,38 @@
       'SPP':       { color: '#888888', label: 'Single-point GPS', accuracy: '~5 m' },
       'DGNSS':     { color: '#6b9ac4', label: 'DGNSS',            accuracy: '~1 m' },
       'RTK Float': { color: '#c89944', label: 'RTK Float',        accuracy: '~30 cm' },
-      'RTK Fix':   { color: '#4a6b3a', label: 'RTK Fix',          accuracy: '~1 cm' },
+      'RTK Fix':   { color: '#5a8a4a', label: 'RTK Fix',          accuracy: '~1 cm' },
       'CLAS':      { color: '#b04a2c', label: 'CLAS (PPP-RTK)',   accuracy: '~10 cm' },
       'PPP':       { color: '#5d7e9a', label: 'PPP / MADOCA',     accuracy: '~10 cm' },
     };
 
     const PLATFORMS = {
-      github: { label: 'GitHub', short: 'GH', cls: 'gh', url: 'https://github.com/hatognss' },
+      github: { label: 'GitHub', short: 'GH', cls: 'gh', url: 'https://github.com/h-shiono' },
       zenn:   { label: 'Zenn',   short: 'ZE', cls: 'ze', url: 'https://zenn.dev/hatognss' },
-      x:      { label: 'X',      short: 'X',  cls: 'x',  url: 'https://x.com/hatognss' },
+      x:      { label: 'X',      short: 'X',  cls: 'x',  url: 'https://x.com/HatoGnss' },
     };
 
-    // Japanese species names keyed by Latin name.
-    // Add a new species here when you photograph it for the first time.
     const SPECIES = {
       // ハト目 (Columbiformes)
-      'Columba livia':              { jp: 'ドバト',     en: 'Rock Pigeon' },
-      'Streptopelia orientalis':    { jp: 'キジバト',   en: 'Oriental Turtle-Dove' },
-      'Treron sieboldii':           { jp: 'アオバト',   en: 'Japanese Green Pigeon' },
-      'Streptopelia decaocto':      { jp: 'シラコバト', en: 'Eurasian Collared-Dove' },
-      'Columba janthina':           { jp: 'カラスバト', en: 'Japanese Wood-Pigeon' },
+      'Columba livia':              { jp: 'ドバト',         en: 'Rock Pigeon' },
+      'Streptopelia orientalis':    { jp: 'キジバト',       en: 'Oriental Turtle-Dove' },
+      'Treron sieboldii':           { jp: 'アオバト',       en: 'Japanese Green Pigeon' },
+      'Streptopelia decaocto':      { jp: 'シラコバト',     en: 'Eurasian Collared-Dove' },
+      'Columba janthina':           { jp: 'カラスバト',     en: 'Japanese Wood-Pigeon' },
+      'Geopelia striata':           { jp: 'チョウショウバト', en: 'Zebra Dove' },
       // 番外編 (Off-topic)
-      'Anas zonorhyncha':           { jp: 'カルガモ',   en: 'Eastern Spot-billed Duck' },
-      'Chroicocephalus ridibundus': { jp: 'ユリカモメ', en: 'Black-headed Gull' },
+      'Anas zonorhyncha':           { jp: 'カルガモ',       en: 'Eastern Spot-billed Duck' },
+      'Chroicocephalus ridibundus': { jp: 'ユリカモメ',     en: 'Black-headed Gull' },
+      'Aplonis panayensis':         { jp: 'ミナミアオツヤテリムク', en: 'Asian Glossy Starling' },
+      'Coloeus monedula':           { jp: 'ニシコクマルガラス', en: 'Western Jackdaw' },
+      'Ardea cinerea':              { jp: 'アオサギ',       en: 'Grey Heron' },
+      'Monticola solitarius':       { jp: 'イソヒヨドリ',   en: 'Blue Rock-Thrush' },
+
+      // English common names — supported as fallback keys so existing entries
+      // work without rewriting. Recommend migrating to Latin names long-term.
+      'Asian Glossy Starling':      { jp: 'ミナミアオツヤテリムク', en: 'Asian Glossy Starling' },
+      'Western Jackdaw':            { jp: 'ニシコクマルガラス', en: 'Western Jackdaw' },
+      'Zebra Dove':                 { jp: 'チョウショウバト', en: 'Zebra Dove' },
     };
 
     // ===========================================================
@@ -785,16 +890,52 @@
     }
 
     // ===========================================================
-    // Map setup
+    // Map + tiles (theme-aware)
     // ===========================================================
-    const map = L.map('map', { zoomControl: true, attributionControl: true })
-      .setView([35.6750, 139.7900], 12);
+    // Start with a broad view; fitBounds() is called once entries are loaded.
+    const map = L.map('map', {
+      zoomControl: true,
+      attributionControl: true,
+      worldCopyJump: true,  // smooth panning across the antimeridian (Hawaii ↔ Japan)
+    }).setView([30, 100], 2);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '© OpenStreetMap contributors · © CARTO',
-      subdomains: 'abcd',
-      maxZoom: 19,
-    }).addTo(map);
+    const TILES = {
+      light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap contributors · © CARTO',
+        subdomains: 'abcd', maxZoom: 19,
+      }),
+      dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap contributors · © CARTO',
+        subdomains: 'abcd', maxZoom: 19,
+      }),
+    };
+    let currentTileLayer = null;
+
+    function setMapTiles(theme) {
+      const next = TILES[theme] || TILES.light;
+      if (currentTileLayer === next) return;
+      if (currentTileLayer) map.removeLayer(currentTileLayer);
+      next.addTo(map);
+      currentTileLayer = next;
+    }
+
+    // ===========================================================
+    // Theme toggle
+    // ===========================================================
+    function currentTheme() {
+      return document.documentElement.getAttribute('data-theme') || 'light';
+    }
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      const icon = document.getElementById('theme-icon');
+      if (icon) icon.textContent = theme === 'dark' ? '☀' : '☾';
+      setMapTiles(theme);
+      try { localStorage.setItem('hato-colle-theme', theme); } catch (e) {}
+    }
+
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+    });
 
     // ===========================================================
     // State + render
@@ -894,7 +1035,6 @@
     }
 
     function renderSpeciesFilter(entries) {
-      // Group by category, then count by species (Latin)
       const groups = { hato: {}, other: {} };
       entries.forEach((e) => {
         const cat = groups[e.category];
@@ -921,7 +1061,6 @@
           </div>
         `;
 
-        // Sort by count desc, then by Japanese name
         speciesCounts.sort((a, b) => b[1] - a[1] || speciesJp(a[0]).localeCompare(speciesJp(b[0])));
         speciesCounts.forEach(([latin, count]) => {
           const jp = speciesJp(latin);
@@ -1012,12 +1151,13 @@
 
       entries.forEach((e) => {
         const d = new Date(e.date);
-        const cfg = POS_METHODS[e.positioning] || POS_METHODS['SPP'];
         const dot = document.createElement('div');
         dot.className = `timeline-dot ${e.category === 'other' ? 'other' : ''}`;
         dot.style.left = `${pct(d)}%`;
-        dot.style.background = cfg.color;
-        dot.style.borderColor = e.category === 'other' ? cfg.color : 'var(--bg-paper)';
+        // Use the accent color for timeline dots (rust in light, purple in dark).
+        // The map markers retain the positioning-method color for technical reading.
+        dot.style.background = 'var(--rust)';
+        dot.style.borderColor = e.category === 'other' ? 'var(--rust)' : 'var(--bg-paper)';
         dot.dataset.species = e.species;
         dot.dataset.label = `No.${pad3(e.no)} · ${speciesJp(e.species)} · ${e.name}`;
         dot.addEventListener('click', () => flyToEntry(e));
@@ -1031,6 +1171,9 @@
     // Entry point
     // ===========================================================
     async function main() {
+      // Apply theme/tiles now that toggle handler is wired
+      applyTheme(currentTheme());
+
       let data;
       try {
         const res = await fetch('./entries.json', { cache: 'no-cache' });
@@ -1060,6 +1203,18 @@
       renderSpeciesFilter(entries);
       renderAvatars(entries);
       renderTimeline(entries);
+
+      // Auto-fit the map to all entries. Use padding so pins don't sit
+      // on the very edge of the viewport.
+      if (entries.length > 0) {
+        const bounds = L.latLngBounds(entries.map(e => [e.lat, e.lon]));
+        // For single-entry case, padding alone won't help; clamp the zoom.
+        map.fitBounds(bounds, {
+          padding: [60, 60],
+          maxZoom: 14,
+          animate: false,
+        });
+      }
 
       requestAnimationFrame(() => map.invalidateSize());
       window.addEventListener('load', () => map.invalidateSize());

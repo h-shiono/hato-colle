@@ -4,17 +4,19 @@
 
 私の出会った鳩(と、たまにそれ以外の鳥)を、撮影時の **測位機材** と **精度** とともに記録するコレクションです。
 
-🔗 **Live**: https://hatognss.github.io/hato-colle/
+🔗 **Live**: https://h-shiono.github.io/hato-colle/
 
 ---
 
 ## What this is
 
-野鳥写真と GNSS の精度を意図的に紐づけたコレクション。`Pixel SPP(~5m)` から始まり、`mosaic-G5 + MRTKLIB の CLAS Fix(~10cm)`、将来的に `ZED-F9P RTK Fix(~1cm)` や LEO SoOp など、 **撮影時に使った測位方式の変遷** がそのまま個人の測位機材史になる、ことを目的としています。
+野鳥写真と GNSS の精度を紐づけた (実験的) コレクション。
+今はスマートフォンのジオタグのみですが、将来的にもっと高精度なジオタグをつけられないか？
+撮影時の測位方式の変遷を残していくことで、ハトコレ自体が個人の測位機材史になっていく ── そうなったら面白いなと思っています。
 
 カテゴリは2つ:
 - **ハト目 (Columbiformes)** — 本編
-- **番外編 (Off-topic)** — ハトを撮ろうとして撮れた他の鳥
+- **番外編 (Off-topic)** — 他の鳥だって好きです。
 
 ---
 
@@ -138,10 +140,28 @@ sudo apt install libimage-exiftool-perl     # Debian / Ubuntu / Pi
 
 ## Deploying to GitHub Pages
 
+This repo uses **GitHub Actions** to deploy to Pages (workflow: `.github/workflows/deploy.yml`). Steps to enable it on a fresh repo:
+
 1. Push to `main`.
 2. Repo → **Settings** → **Pages**.
-3. Source: `Deploy from a branch`, branch: `main`, folder: `/ (root)`.
-4. Wait a minute. URL appears at the top of the Pages settings.
+3. Under **Build and deployment** → **Source**, choose **GitHub Actions**.
+4. The first push to `main` (or a manual run via Actions → "Deploy to GitHub Pages" → Run workflow) deploys the site.
+
+The URL appears at the top of the Pages settings once the deploy succeeds. Subsequent pushes to `main` redeploy automatically.
+
+### What the workflow does
+
+- Runs `python3 -c "json.load(open('entries.json'))"` to verify the data file is valid JSON before deploying (catches typos in PRs that touch entries).
+- Uploads the entire repo root as the Pages artifact (the site is a single-file static app, so no build step needed yet).
+- Calls the official `actions/deploy-pages@v4` to publish.
+
+### Related workflows
+
+- `.github/workflows/check-exif.yml` runs on PRs that touch `photos/**` and fails the check if any photo still contains GPS metadata. This catches accidental leaks **before** they hit `main`.
+
+### Going to a custom domain (optional)
+
+If you want `hato-colle.hatognss.com` or similar instead of `hatognss.github.io/hato-colle`, add a `CNAME` file at the repo root containing the bare domain, and configure DNS per [GitHub's docs](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site).
 
 ---
 
@@ -154,4 +174,4 @@ TBD. Plan:
 
 ---
 
-*hato.gnss · [github.com/hatognss](https://github.com/hatognss)*
+*hato.gnss · [github.com/h-shiono](https://github.com/h-shiono)*

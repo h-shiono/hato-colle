@@ -33,7 +33,7 @@
       "name": "ザグレブの街中で",
       "species": "Columba livia",
       "category": "hato",
-      "date": "2026-05-05",
+      "date": "2024-04-30",
       "lat": 45.814806,
       "lon": 15.976300,
       "device": "Google Pixel 8 Pro",
@@ -146,6 +146,58 @@
       "positioning": "SPP",
       "photo": "photos/011.jpg",
       "notes": "ドバトに混じって、この写真のような小柄な鳩もいた。警戒心が強いのか、すぐに飛び去ってしまった。"
+    },
+    {
+      "no": 12,
+      "name": "ブダペストの街中で",
+      "species": "Columba livia",
+      "category": "hato",
+      "date": "2024-04-29",
+      "lat": 47.502819,
+      "lon": 19.050564,
+      "device": "Google Pixel 8 Pro",
+      "positioning": "SPP",
+      "photo": "photos/012.jpg",
+      "notes": "よく晴れて気持ちの良い日だった。噴水の水で涼んでいたのか、あるいは水浴びをしていたのか。"
+    },
+    {
+      "no": 13,
+      "name": "ノートルダム大聖堂の広場で",
+      "species": "Columba livia",
+      "category": "hato",
+      "date": "2025-09-29",
+      "lat": 48.581433,
+      "lon": 7.751806,
+      "device": "Google Pixel 8 Pro",
+      "positioning": "SPP",
+      "photo": "photos/013.jpg",
+      "notes": "歩き疲れて休んでいたら、鳩も近くで休んでいた。ストラスブールでは、鳩とスズメをよく見かけた。"
+    },
+    {
+      "no": 14,
+      "name": "御薬園の薄氷の上で",
+      "species": "Anas zonorhyncha",
+      "category": "other",
+      "date": "2026-01-13",
+      "lat": 37.491089,
+      "lon": 139.943683,
+      "device": "Google Pixel 8 Pro",
+      "positioning": "SPP",
+      "photo": "photos/014.jpg",
+      "notes": "確か前日は大雪で、御薬園の池はかなりの部分が薄氷で覆われていた。その上でカモたちが寒そうに縮こまっていた。"
+    },
+    {
+      "no": 15,
+      "name": "テスト中に",
+      "species": "Phoenicurus auroreus",
+      "category": "other",
+      "date": "2026-03-17",
+      "lat": 35.335761,
+      "lon": 139.520758,
+      "device": "Google Pixel 8 Pro",
+      "positioning": "SPP",
+      "photo": "photos/015.jpg",
+      "notes": "MRTKLIBの機能テストをしていたら偶然見かけた。渡り鳥らしく、なんとなく見かけて嬉しくなった。"
     }
   ]
 }

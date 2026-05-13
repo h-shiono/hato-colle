@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "no": 1,
+      "name": "越中島キャンパスのドバト",
+      "species": "Columba livia",
+      "category": "hato",
+      "date": "2026-04-12",
+      "lat": 35.6644,
+      "lon": 139.7943,
+      "device": "Google Pixel 8",
+      "positioning": "SPP",
+      "photo": "photos/001.jpg",
+      "notes": "研究室の窓から下を覗くと、いつもの個体がいた。"
+    },
+    {
+      "no": 2,
+      "name": "永代橋のキジバト",
+      "species": "Streptopelia orientalis",
+      "category": "hato",
+      "date": "2026-04-21",
+      "lat": 35.6791,
+      "lon": 139.7917,
+      "device": "mosaic-G5 + MRTKLIB",
+      "positioning": "CLAS",
+      "photo": "photos/002.jpg",
+      "usedAs": ["github"],
+      "notes": "橋の欄干にとまっていた。CLAS Fix が出た瞬間にシャッターを切れた。"
+    },
+    {
+      "no": 3,
+      "name": "清澄庭園のドバト",
+      "species": "Columba livia",
+      "category": "hato",
+      "date": "2026-04-28",
+      "lat": 35.6816,
+      "lon": 139.7977,
+      "device": "ZED-F9P + base station",
+      "positioning": "RTK Fix",
+      "photo": "photos/003.jpg",
+      "usedAs": ["zenn"],
+      "notes": "池のほとり。地面に降りていたところを真上から。"
+    },
+    {
+      "no": 4,
+      "name": "上野恩賜公園のキジバト",
+      "species": "Streptopelia orientalis",
+      "category": "hato",
+      "date": "2026-05-05",
+      "lat": 35.7156,
+      "lon": 139.7745,
+      "device": "Google Pixel 8",
+      "positioning": "SPP",
+      "photo": "photos/004.jpg",
+      "usedAs": ["x"],
+      "notes": "人が多くて精度はかなり緩い。鳩はそれを気にしない。"
+    },
+    {
+      "no": 5,
+      "name": "浜離宮のカルガモ",
+      "species": "Anas zonorhyncha",
+      "category": "other",
+      "date": "2026-04-15",
+      "lat": 35.6597,
+      "lon": 139.7635,
+      "device": "Google Pixel 8",
+      "positioning": "SPP",
+      "photo": "photos/005.jpg",
+      "notes": "ハトを撮ろうとしていたら、視界に入ってきてしまった。"
+    },
+    {
+      "no": 6,
+      "name": "新木場のユリカモメ",
+      "species": "Chroicocephalus ridibundus",
+      "category": "other",
+      "date": "2026-03-08",
+      "lat": 35.6446,
+      "lon": 139.8275,
+      "device": "mosaic-G5 + MRTKLIB",
+      "positioning": "PPP",
+      "photo": "photos/006.jpg",
+      "notes": "対岸の杭の上。彼らは冬の渡来種で、もうすぐ北へ帰る。"
+    }
+  ]
+}

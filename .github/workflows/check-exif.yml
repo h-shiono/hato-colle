@@ -1,0 +1,40 @@
+name: Check EXIF
+
+on:
+  pull_request:
+    paths:
+      - 'photos/**'
+  push:
+    branches: [main]
+    paths:
+      - 'photos/**'
+
+jobs:
+  check-gps:
+    name: Block photos with GPS metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install exiftool
+        run: sudo apt-get update && sudo apt-get install -y libimage-exiftool-perl
+
+      - name: Scan photos/ for GPS metadata
+        run: |
+          set +e
+          found=0
+          shopt -s nullglob nocaseglob
+          for f in photos/*.jpg photos/*.jpeg photos/*.png photos/*.heic photos/*.tif photos/*.tiff; do
+            [ -e "$f" ] || continue
+            gps_tags=$(exiftool -s -gps:* "$f" 2>/dev/null | grep -E '^(GPSLatitude|GPSLongitude|GPSAltitude|GPSPosition)' || true)
+            if [ -n "$gps_tags" ]; then
+              echo "::error file=$f::GPS metadata present. Run: ./scripts/strip-exif.sh $f"
+              echo "  details:"
+              echo "$gps_tags" | sed 's/^/    /'
+              found=1
+            fi
+          done
+          if [ $found -eq 0 ]; then
+            echo "OK: no photos contain GPS metadata."
+          fi
+          exit $found

@@ -198,6 +198,19 @@
       "positioning": "SPP",
       "photo": "photos/015.jpg",
       "notes": "MRTKLIBの機能テストをしていたら偶然見かけた。渡り鳥らしく、なんとなく見かけて嬉しくなった。"
+    },
+    {
+      "no": 16,
+      "name": "運河クルーズ・鳩のアパート",
+      "species": "Columba livia",
+      "category": "hato",
+      "date": "2022-11-12",
+      "lat": 43.200339,
+      "lon": 141.001367,
+      "device": "Google Pixel 8 Pro",
+      "positioning": "SPP",
+      "photo": "photos/016.jpg",
+      "notes": "ツアーガイドさんが教えてくれた、橋の下を住処にしている鳩たち。橋の基礎と橋桁がちょうど1羽分のスペースを作っていて、そこに1羽ずつ住んでいるそう。"
     }
   ]
 }

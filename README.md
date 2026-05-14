@@ -172,6 +172,12 @@ TBD. Plan:
 - Photos: All rights reserved unless otherwise marked
 - Entries text (notes, names): CC BY-NC 4.0
 
+## Acknowledgements
+
+- Favicon: 🕊️ (U+1F54A) from [Twemoji](https://github.com/twitter/twemoji) by Twitter, Inc., 
+  licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/). 
+  Generated via [favicon.io](https://favicon.io/).
+
 ---
 
 *hato.gnss · [github.com/h-shiono](https://github.com/h-shiono)*

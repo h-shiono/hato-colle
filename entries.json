@@ -207,10 +207,23 @@
       "date": "2022-11-12",
       "lat": 43.200339,
       "lon": 141.001367,
-      "device": "Google Pixel 8 Pro",
+      "device": "Google Pixel 5a",
       "positioning": "SPP",
       "photo": "photos/016.jpg",
       "notes": "ツアーガイドさんが教えてくれた、橋の下を住処にしている鳩たち。橋の基礎と橋桁がちょうど1羽分のスペースを作っていて、そこに1羽ずつ住んでいるそう。"
+    },
+    {
+      "no": 17,
+      "name": "富士山を背景に",
+      "species": "Corvus macrorhynchos",
+      "category": "other",
+      "date": "2026-05-20",
+      "lat": 35.335308,
+      "lon": 139.520753,
+      "device": "Google Pixel 8 Pro",
+      "positioning": "SPP",
+      "photo": "photos/017.jpg",
+      "notes": "冬にははっきり見えていた富士山が、最近は霞んで見えることが多い。青白い背景にカラスのシルエットが映える。このアパートの屋上は鳩・カラスが休んでいることが多い。"
     }
   ]
 }

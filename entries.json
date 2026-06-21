@@ -237,6 +237,19 @@
       "positioning": "SPP",
       "photo": "photos/018.jpg",
       "notes": "ここ数日、湘南の海は夜光虫を見に多くの人が訪れていた。いつもより波が高いのは、多分これから来る台風のせい。日差しも強く、空気は湿気を含み、夏のはじまりを感じる。"
+    },
+    {
+      "no": 19,
+      "name": "ウィーンにて",
+      "species": "Columba livia",
+      "category": "hato",
+      "date": "2026-06-19",
+      "lat": 48.207886,
+      "lon": 16.359775,
+      "device": "Google Pixel 8 Pro",
+      "positioning": "SPP",
+      "photo": "photos/019.jpg",
+      "notes": "「パラス・アテナの噴水」で水浴びする鳩たち。国会議事堂の屋根上でも多くの鳩が休んでいた。よく晴れて日差しの強い日だった。"
     }
   ]
 }

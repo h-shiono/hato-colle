@@ -250,6 +250,32 @@
       "positioning": "SPP",
       "photo": "photos/019.jpg",
       "notes": "「パラス・アテナの噴水」で水浴びする鳩たち。国会議事堂の屋根上でも多くの鳩が休んでいた。よく晴れて日差しの強い日だった。"
+    },
+    {
+      "no": 20,
+      "name": "サランダビーチで",
+      "species": "Streptopelia decaocto",
+      "category": "hato",
+      "date": "2026-08-11",
+      "lat": 39.873581,
+      "lon": 20.007572,
+      "device": "Google Pixel 8 Pro",
+      "positioning": "SPP",
+      "photo": "photos/020.jpg",
+      "notes": "強い日差しの下、美しいサランダビーチを歩く鳩。サランダではこの子以外にあまり鳩を見かけなかった気がする。"
+    },
+        {
+      "no": 21,
+      "name": "スカンデルベグ広場にて",
+      "species": "Columba livia",
+      "category": "hato",
+      "date": "2026-08-12",
+      "lat": 41.327875,
+      "lon": 19.819078,
+      "device": "Google Pixel 8 Pro",
+      "positioning": "SPP",
+      "photo": "photos/021.jpg",
+      "notes": "夕焼けの中、たくさんの鳩が広場に集まっていた。毎日広場にはたくさんの人、観光客も地元民も集まり、どこかゆっくりした空気が流れていた。"
     }
   ]
 }

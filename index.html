@@ -932,16 +932,21 @@
       worldCopyJump: true,  // smooth panning across the antimeridian (Hawaii ↔ Japan)
     }).setView([30, 100], 2);
 
-    const TILES = {
-      light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '© OpenStreetMap contributors · © CARTO',
-        subdomains: 'abcd', maxZoom: 19,
-      }),
-      dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '© OpenStreetMap contributors · © CARTO',
-        subdomains: 'abcd', maxZoom: 19,
-      }),
-    };
+    // CARTO started requiring a key in Aug 2026 — keyless requests still return 200,
+    // but with "API KEY REQUIRED" burned into the tile. This is the free basemap key
+    // (5M tiles/month, non-commercial); it is public by necessity on a static site.
+    // Attribution below is the condition of the free tier — keep it.
+    const CARTO_KEY = 'cb1_2yx5_1_54e95d9d75378984bde88b2d';
+
+    function cartoTiles(style) {
+      return L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/' + style + '/{z}/{x}/{y}{r}.png?key=' + CARTO_KEY, {
+          attribution: '© OpenStreetMap contributors · © CARTO',
+          subdomains: 'abcd', maxZoom: 19,
+        });
+    }
+
+    const TILES = { light: cartoTiles('light_all'), dark: cartoTiles('dark_all') };
     let currentTileLayer = null;
 
     function setMapTiles(theme) {

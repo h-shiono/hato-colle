@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>crop picker · ハトコレ</title>
+<!--
+  Local tool for placing the circular thumbnail crops.
+
+  Serve the project root and open http://localhost:8000/scripts/crop-picker.html
+  (it fetches ../entries.json, so file:// will not work):
+
+      python3 -m http.server 8000
+
+  Click the photo to set the centre, scroll or drag the slider to set the
+  radius, then copy the JSON and paste the "crop" values into entries.json.
+  Afterwards run ./scripts/make-thumbs.sh to regenerate the thumbnails.
+
+  This file is a dev tool and is not linked from the site.
+-->
+<style>
+  :root { color-scheme: light dark; --line: #8a8a7e; --accent: #b04a2c; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 1.2rem;
+    font: 14px/1.5 ui-sans-serif, system-ui, sans-serif;
+    display: grid; grid-template-columns: 1fr 260px; gap: 1.2rem;
+    align-items: start;
+  }
+  h1 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.18em;
+       font-weight: 600; margin: 0 0 0.8rem; opacity: 0.7; }
+  #stage { position: relative; display: inline-block; line-height: 0;
+           cursor: crosshair; max-width: 100%; }
+  #stage img { max-width: 100%; max-height: 74vh; display: block; }
+  #ring { position: absolute; border: 2px solid var(--accent); border-radius: 50%;
+          box-shadow: 0 0 0 9999px rgba(0,0,0,0.45); pointer-events: none; }
+  #side { position: sticky; top: 1.2rem; }
+  #preview { width: 128px; height: 128px; border-radius: 50%; object-fit: cover;
+             display: block; margin: 0 0 0.9rem; box-shadow: 0 0 0 3px var(--line); }
+  .row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.6rem; }
+  button { padding: 0.35rem 0.7rem; cursor: pointer; font: inherit; }
+  select, input[type=range] { width: 100%; font: inherit; }
+  code { font: 12px/1.6 ui-monospace, monospace; display: block;
+         white-space: pre-wrap; word-break: break-all; opacity: 0.85; }
+  textarea { width: 100%; height: 190px; font: 11px/1.45 ui-monospace, monospace; }
+  .hint { font-size: 11px; opacity: 0.6; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div>
+  <h1>crop picker</h1>
+  <div id="stage"><img id="photo" alt=""><div id="ring"></div></div>
+</div>
+
+<div id="side">
+  <canvas id="preview" width="128" height="128"></canvas>
+
+  <div class="row">
+    <button id="prev">←</button>
+    <select id="pick"></select>
+    <button id="next">→</button>
+  </div>
+
+  <div class="row"><input id="radius" type="range" min="0.02" max="0.5" step="0.001"></div>
+  <code id="out"></code>
+
+  <p class="hint">
+    写真をクリック＝中心。ホイールまたはスライダー＝半径。<br>
+    矢印キーで微調整（Shiftで粗く）。<br>
+    調整後、下の JSON を entries.json に反映して<br>
+    <code>./scripts/make-thumbs.sh</code> を実行。
+  </p>
+
+  <div class="row"><button id="copy">copy all JSON</button></div>
+  <textarea id="dump" readonly></textarea>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let entries = [], idx = 0;
+
+const numOf = (e) => (/(\d{3})\.jpg$/.exec(e.photo || '') || [])[1] || null;
+
+fetch('../entries.json', { cache: 'no-cache' })
+  .then(r => r.json())
+  .then(d => {
+    entries = (d.entries || []).filter(numOf);
+    entries.forEach((e) => {
+      // Default to a centre crop so an entry with no crop yet still opens.
+      if (!e.crop) e.crop = { x: 0.5, y: 0.5, r: 0.15 };
+      $('pick').add(new Option(`${numOf(e)} · ${e.name}`, ''));
+    });
+    load(0);
+  })
+  .catch(err => { $('out').textContent = 'entries.json を読めません: ' + err.message; });
+
+function cur() { return entries[idx]; }
+
+function load(i) {
+  idx = (i + entries.length) % entries.length;
+  $('pick').selectedIndex = idx;
+  $('photo').src = '../' + cur().photo;
+  $('photo').onload = draw;
+  if ($('photo').complete) draw();
+}
+
+function draw() {
+  const e = cur(), img = $('photo'), c = e.crop;
+  const W = img.clientWidth, H = img.clientHeight;
+  // r is a fraction of the shorter edge, matching make-thumbs.sh.
+  const side = 2 * c.r * Math.min(W, H);
+  Object.assign($('ring').style, {
+    width: side + 'px', height: side + 'px',
+    left: (c.x * W - side / 2) + 'px',
+    top: (c.y * H - side / 2) + 'px',
+  });
+  $('radius').value = c.r;
+
+  const nW = img.naturalWidth, nH = img.naturalHeight;
+  const nSide = 2 * c.r * Math.min(nW, nH);
+  const ox = Math.min(Math.max(c.x * nW - nSide / 2, 0), nW - nSide);
+  const oy = Math.min(Math.max(c.y * nH - nSide / 2, 0), nH - nSide);
+  const ctx = $('preview').getContext('2d');
+  ctx.clearRect(0, 0, 128, 128);
+  ctx.save();
+  ctx.beginPath(); ctx.arc(64, 64, 64, 0, Math.PI * 2); ctx.clip();
+  ctx.drawImage(img, ox, oy, nSide, nSide, 0, 0, 128, 128);
+  ctx.restore();
+
+  $('out').textContent =
+    `"crop": { "x": ${c.x.toFixed(3)}, "y": ${c.y.toFixed(3)}, "r": ${c.r.toFixed(3)} },`;
+  $('dump').value = entries
+    .map(e2 => `${numOf(e2)}: { "x": ${e2.crop.x.toFixed(3)}, "y": ${e2.crop.y.toFixed(3)}, "r": ${e2.crop.r.toFixed(3)} }`)
+    .join('\n');
+}
+
+$('stage').addEventListener('click', (ev) => {
+  const r = $('photo').getBoundingClientRect();
+  cur().crop.x = Math.min(Math.max((ev.clientX - r.left) / r.width, 0), 1);
+  cur().crop.y = Math.min(Math.max((ev.clientY - r.top) / r.height, 0), 1);
+  draw();
+});
+
+$('stage').addEventListener('wheel', (ev) => {
+  ev.preventDefault();
+  nudgeR(ev.deltaY > 0 ? 0.004 : -0.004);
+}, { passive: false });
+
+function nudgeR(d) {
+  cur().crop.r = Math.min(Math.max(cur().crop.r + d, 0.02), 0.5);
+  draw();
+}
+
+$('radius').addEventListener('input', (ev) => { cur().crop.r = +ev.target.value; draw(); });
+$('pick').addEventListener('change', (ev) => load(ev.target.selectedIndex));
+$('prev').addEventListener('click', () => load(idx - 1));
+$('next').addEventListener('click', () => load(idx + 1));
+$('copy').addEventListener('click', () => navigator.clipboard.writeText($('dump').value));
+
+addEventListener('keydown', (ev) => {
+  const step = ev.shiftKey ? 0.02 : 0.004;
+  const c = cur() && cur().crop;
+  if (!c) return;
+  const moves = {
+    ArrowLeft:  () => c.x -= step,  ArrowRight: () => c.x += step,
+    ArrowUp:    () => c.y -= step,  ArrowDown:  () => c.y += step,
+  };
+  if (moves[ev.key]) { ev.preventDefault(); moves[ev.key](); draw(); }
+  else if (ev.key === '[') nudgeR(-step);
+  else if (ev.key === ']') nudgeR(step);
+  else if (ev.key === 'n') load(idx + 1);
+  else if (ev.key === 'p') load(idx - 1);
+});
+</script>
+</body>
+</html>

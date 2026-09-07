@@ -328,6 +328,181 @@
     }
 
     /* Avatars */
+    /* ---- Faces ------------------------------------------------
+       A peek strip in the sidebar opens a dialog holding the full set.
+       The ring carries the positioning colour so the grid still reads as
+       part of the field log rather than a plain photo gallery. */
+    .faces-peek {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      width: 100%;
+      padding: 0.5rem 0.3rem;
+      border: 0;
+      background: none;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: background 0.15s;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+    }
+    .faces-peek:hover { background: var(--bg-elevated); }
+    .faces-peek:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+    .peek-row { display: flex; flex-shrink: 0; }
+    .peek-row img,
+    .peek-row .more {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 0 0 2px var(--bg-paper);
+      transition: transform 0.15s;
+    }
+    .peek-row > * + * { margin-left: -9px; }
+    .peek-row .more {
+      display: grid;
+      place-items: center;
+      background: var(--bg-elevated);
+      color: var(--ink-soft);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.02em;
+      box-shadow: 0 0 0 2px var(--bg-paper), inset 0 0 0 1px var(--line);
+    }
+    .faces-peek:hover .peek-row img:first-child { transform: translateX(-2px); }
+    .faces-peek:hover .peek-row > :last-child { transform: translateX(2px); }
+    .peek-cta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--ink-faint);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .faces-peek:hover .peek-cta { color: var(--rust); }
+    .peek-cta .arrow { transition: transform 0.15s; display: inline-block; }
+    .faces-peek:hover .peek-cta .arrow { transform: translateX(3px); }
+
+    .faces-dialog {
+      /* The global `* { margin: 0 }` reset kills the UA's centring. */
+      margin: auto;
+      width: min(760px, 92vw);
+      max-height: 86vh;
+      padding: 1.5rem 1.6rem 1.7rem;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: var(--bg-paper);
+      color: var(--ink);
+      box-shadow: var(--shadow-popup);
+      overflow: auto;
+    }
+    .faces-dialog::backdrop { background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(2px); }
+    .faces-dialog-head {
+      display: flex;
+      align-items: baseline;
+      gap: 0.9rem;
+      padding-bottom: 0.7rem;
+      margin-bottom: 1.2rem;
+      border-bottom: 1px dashed var(--line);
+    }
+    .faces-dialog-head h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--ink-soft);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .faces-close {
+      margin-left: auto;
+      border: 0;
+      background: none;
+      color: var(--ink-faint);
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 0.1rem 0.3rem;
+      line-height: 1;
+      align-self: center;
+    }
+    .faces-close:hover { color: var(--rust); }
+    .faces-close:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; border-radius: 2px; }
+
+    .faces {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+      gap: 1.3rem 0.8rem;
+      align-items: start;
+    }
+    .face {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+      transition: opacity 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .face .thumb {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      background: var(--bg-elevated);
+      box-shadow: 0 0 0 2px var(--bg-paper), 0 0 0 3px var(--ring, var(--line));
+      filter: saturate(0.92);
+      transition: transform 0.15s ease, box-shadow 0.15s, filter 0.15s;
+    }
+    .face:hover .thumb { transform: translateY(-3px) scale(1.05); filter: saturate(1.05); }
+    .face:focus-visible { outline: none; }
+    .face:focus-visible .thumb { box-shadow: 0 0 0 2px var(--bg-paper), 0 0 0 3px var(--rust); }
+    .face.active .thumb { box-shadow: 0 0 0 2px var(--bg-paper), 0 0 0 3px var(--rust); }
+    .face.dimmed { opacity: 0.2; pointer-events: none; }
+    .face-label {
+      font-family: 'Fraunces', 'Hiragino Mincho ProN', serif;
+      font-size: 0.72rem;
+      line-height: 1.3;
+      color: var(--ink);
+      text-align: center;
+      display: block;
+      width: 100%;
+    }
+    .face-label .no {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.57rem;
+      color: var(--ink-faint);
+      letter-spacing: 0.04em;
+      margin-bottom: 0.2rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .faces-caption {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--ink-faint);
+      letter-spacing: 0.03em;
+      line-height: 1.4;
+    }
+
+    /* Round face in the "currently on duty" rows — this list is about
+       avatars, so showing the actual crop is the point. */
+    .avatars .face-mini {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 2px var(--bg-paper), 0 0 0 3px var(--line);
+    }
+
     .avatars { list-style: none; }
     .avatars li {
       display: flex;
@@ -807,6 +982,14 @@
           <ul id="legend-list"></ul>
         </section>
 
+        <section>
+          <h2>顔ぶれ · Faces</h2>
+          <button class="faces-peek" id="faces-open" type="button">
+            <span class="peek-row" id="faces-peek-row"></span>
+            <span class="peek-cta">すべて見る <span class="arrow">→</span></span>
+          </button>
+        </section>
+
         <section class="species-filter">
           <h2>種 · Species</h2>
           <div id="species-filter"></div>
@@ -1046,6 +1229,113 @@
       setTimeout(() => found.marker.openPopup(), 650);
     }
 
+    // Thumbnails are generated by scripts/make-thumbs.sh from the "crop"
+    // coordinates in entries.json. No crop, no thumbnail — the grid falls
+    // back to a plain disc so the entry is still reachable.
+    function thumbSrc(entry) {
+      if (!entry.crop) return null;
+      const m = /(\d{3})\.jpg$/.exec(entry.photo || '');
+      return m ? `photos/thumbs/${m[1]}` : null;
+    }
+
+    const faceButtons = [];
+
+    function renderFaces(entries) {
+      const grid = document.getElementById('faces-grid');
+      const caption = document.getElementById('faces-caption');
+      const defaultCaption = caption.textContent;
+      const dialog = document.getElementById('faces-dialog');
+      const ordered = [...entries].sort((a, b) => a.no - b.no);
+
+      ordered.forEach((entry) => {
+        const cfg = POS_METHODS[entry.positioning] || POS_METHODS['SPP'];
+        const base = thumbSrc(entry);
+        const btn = document.createElement('button');
+        btn.className = 'face';
+        btn.style.setProperty('--ring', cfg.color);
+        btn.dataset.species = entry.species;
+        btn.type = 'button';
+        btn.innerHTML = `
+          ${base
+            ? `<img class="thumb" src="${esc(base)}.jpg" srcset="${esc(base)}.jpg 1x, ${esc(base)}@2x.jpg 2x"
+                 alt="" loading="lazy" onerror="this.removeAttribute('src'); this.removeAttribute('srcset');">`
+            : '<span class="thumb"></span>'}
+          <span class="face-label">
+            <span class="no">No. ${pad3(entry.no)} · ${esc(speciesJp(entry.species))}</span>
+            ${esc(entry.name)}
+          </span>
+        `;
+
+        const show = () => { caption.textContent = `${esc(entry.species)} · ${entry.date}`; };
+        const reset = () => { caption.textContent = defaultCaption; };
+        btn.addEventListener('mouseenter', show);
+        btn.addEventListener('focus', show);
+        btn.addEventListener('mouseleave', reset);
+        btn.addEventListener('blur', reset);
+        btn.addEventListener('click', () => {
+          faceButtons.forEach(({ el }) => el.classList.remove('active'));
+          btn.classList.add('active');
+          // Close first: flyToEntry opens a popup, which would otherwise
+          // render behind the modal backdrop.
+          dialog.close();
+          flyToEntry(entry);
+        });
+
+        faceButtons.push({ el: btn, entry });
+        grid.appendChild(btn);
+      });
+
+      renderFacesPeek(ordered);
+      wireFacesDialog(dialog, caption, defaultCaption);
+    }
+
+    // Sidebar teaser: a few overlapping crops sampled across the whole
+    // collection, plus the remaining count.
+    function renderFacesPeek(ordered) {
+      const row = document.getElementById('faces-peek-row');
+      const withThumb = ordered.filter(thumbSrc);
+      const SHOWN = Math.min(5, withThumb.length);
+      const step = withThumb.length / SHOWN;
+
+      for (let i = 0; i < SHOWN; i++) {
+        const entry = withThumb[Math.floor(i * step)];
+        const base = thumbSrc(entry);
+        const img = document.createElement('img');
+        img.src = `${base}.jpg`;
+        img.srcset = `${base}.jpg 1x, ${base}@2x.jpg 2x`;
+        img.alt = '';
+        img.loading = 'lazy';
+        row.appendChild(img);
+      }
+      const rest = ordered.length - SHOWN;
+      if (rest > 0) {
+        const more = document.createElement('span');
+        more.className = 'more';
+        more.textContent = `+${rest}`;
+        row.appendChild(more);
+      }
+    }
+
+    function wireFacesDialog(dialog, caption, defaultCaption) {
+      const open = document.getElementById('faces-open');
+      open.addEventListener('click', () => {
+        caption.textContent = defaultCaption;
+        dialog.showModal();
+      });
+      document.getElementById('faces-close').addEventListener('click', () => dialog.close());
+      // Clicking the backdrop: the dialog element itself only receives the
+      // click when it lands outside its own padding box.
+      dialog.addEventListener('click', (ev) => {
+        if (ev.target !== dialog) return;
+        const r = dialog.getBoundingClientRect();
+        const inside = ev.clientX >= r.left && ev.clientX <= r.right
+          && ev.clientY >= r.top && ev.clientY <= r.bottom;
+        if (!inside) dialog.close();
+      });
+      // Esc and focus trapping come from showModal() for free.
+      dialog.addEventListener('close', () => open.focus());
+    }
+
     function renderLegend(entries) {
       const usedMethods = [...new Set(entries.map(e => e.positioning))];
       const ul = document.getElementById('legend-list');
@@ -1069,6 +1359,9 @@
       });
       document.querySelectorAll('.timeline-dot').forEach(d => {
         d.style.display = disabledSpecies.has(d.dataset.species) ? 'none' : '';
+      });
+      faceButtons.forEach(({ el, entry }) => {
+        el.classList.toggle('dimmed', disabledSpecies.has(entry.species));
       });
     }
 
@@ -1146,7 +1439,11 @@
         const cfg = PLATFORMS[platform];
         if (!cfg) return;
         const li = document.createElement('li');
+        const base = thumbSrc(entry);
         li.innerHTML = `
+          ${base ? `<img class="face-mini" src="${esc(base)}.jpg"
+              srcset="${esc(base)}.jpg 1x, ${esc(base)}@2x.jpg 2x"
+              alt="" loading="lazy" onerror="this.remove()">` : ''}
           <span class="platform ${cfg.cls}">${esc(cfg.short)}</span>
           <span class="bird">
             <span class="no">No. ${pad3(entry.no)} · ${esc(speciesJp(entry.species))}</span>
@@ -1239,6 +1536,7 @@
       renderLegend(entries);
       renderCounts(entries);
       renderSpeciesFilter(entries);
+      renderFaces(entries);
       renderAvatars(entries);
       renderTimeline(entries);
 
@@ -1260,5 +1558,14 @@
     }
     main();
   </script>
+  <dialog class="faces-dialog" id="faces-dialog">
+    <div class="faces-dialog-head">
+      <h2>顔ぶれ · Faces</h2>
+      <span class="faces-caption" id="faces-caption">丸をクリックで、その子の記録へ</span>
+      <button class="faces-close" id="faces-close" type="button" aria-label="閉じる">✕</button>
+    </div>
+    <div class="faces" id="faces-grid"></div>
+  </dialog>
+
 </body>
 </html>

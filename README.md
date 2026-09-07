@@ -27,9 +27,12 @@ hato-colle/
 ├── index.html          # The app (single-file static)
 ├── entries.json        # Data: list of entries (source of truth)
 ├── photos/             # Photos referenced from entries.json
-│   └── 001.jpg, 002.jpg, ...
+│   ├── 001.jpg, 002.jpg, ...
+│   └── thumbs/         # Generated circular-crop thumbnails (do not edit by hand)
 ├── scripts/
-│   └── strip-exif.sh   # Strip GPS metadata before commit
+│   ├── strip-exif.sh   # Strip GPS metadata before commit
+│   ├── make-thumbs.sh  # Generate photos/thumbs/ from the crop coords
+│   └── crop-picker.html # Local tool for placing those crops
 ├── .github/workflows/
 │   └── check-exif.yml  # CI: block PRs containing photos with GPS
 ├── README.md
@@ -85,12 +88,36 @@ Open http://localhost:8000.
      "device": "Google Pixel 8",
      "positioning": "SPP",               // SPP / DGNSS / RTK Float / RTK Fix / CLAS / PPP
      "photo": "photos/007.jpg",
+     "crop": { "x": 0.615, "y": 0.415, "r": 0.125 },  // see step 5
      "usedAs": [],                       // optional: ["github", "zenn", "x"]
      "notes": "..."
    }
    ```
 
-5. **Commit and push.** GitHub Pages picks it up automatically.
+5. **Place the thumbnail crop and generate it.**
+
+   `crop` is the circle shown in the 顔ぶれ · Faces grid: `x`/`y` are the centre
+   as a fraction of width/height, and `r` is the half-side of the square crop as
+   a fraction of the **shorter** edge — so the same `r` frames the same way on
+   portrait and landscape shots.
+
+   Place it visually with the picker (it reads `entries.json` and previews the
+   circle live), then paste the values back and generate:
+
+   ```bash
+   python3 -m http.server 8000
+   # open http://localhost:8000/scripts/crop-picker.html
+
+   ./scripts/make-thumbs.sh 007      # or with no args to rebuild everything
+   ```
+
+   Aim for the bird's head where the photo allows it; on wide shots frame the
+   whole bird instead. An entry with no `crop` still works — it just shows a
+   plain disc in the grid.
+
+6. **Commit and push.** GitHub Pages picks it up automatically. Commit the
+   generated `photos/thumbs/` files too — the site is served as static files,
+   so nothing builds them on deploy.
 
 > **Note**: If the `species` Latin name is new (not seen before in this collection), add it to the `SPECIES` lookup table in `index.html` so the Japanese name displays. The console will log a warning if a Latin name isn't found.
 >

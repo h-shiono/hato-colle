@@ -797,20 +797,52 @@
       letter-spacing: 0.2em;
       color: var(--ink-soft);
     }
+    .timeline-modes {
+      display: flex;
+      gap: 0.3rem;
+      margin-left: 1.3rem;
+      margin-right: auto;
+      flex-wrap: wrap;
+    }
+    .timeline-mode {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.5rem;
+      border: 1px solid var(--line-soft);
+      background: none;
+      color: var(--ink-faint);
+      border-radius: 2px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .timeline-mode:hover { color: var(--ink); border-color: var(--line); }
+    .timeline-mode:focus-visible { outline: 2px solid var(--rust); outline-offset: 1px; }
+    .timeline-mode.on {
+      background: var(--rust);
+      border-color: var(--rust);
+      color: var(--bg-paper);
+    }
+    [data-theme="dark"] .timeline-mode.on { color: var(--bg); }
+
     .timeline-head .range {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.62rem;
       color: var(--ink-faint);
       letter-spacing: 0.05em;
     }
+    /* The baseline sits low in the track so colliding dots can stack
+       upward, clear of the tick labels below it. --tl-base is also read
+       from JS when placing each dot's lane. */
     .timeline-track {
       position: relative;
-      height: 36px;
+      --tl-base: 42px;
+      height: 64px;
       margin: 0 8px;
     }
     .timeline-line {
       position: absolute;
-      top: 50%;
+      top: var(--tl-base);
       left: 0; right: 0;
       height: 1px;
       background: var(--moss);
@@ -818,7 +850,7 @@
     }
     .timeline-tick {
       position: absolute;
-      top: 50%;
+      top: var(--tl-base);
       transform: translate(-50%, 0);
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.58rem;
@@ -841,7 +873,7 @@
     }
     .timeline-dot {
       position: absolute;
-      top: 50%;
+      top: var(--tl-base);
       width: 11px;
       height: 11px;
       border-radius: 50%;
@@ -855,6 +887,15 @@
       transform: translate(-50%, -50%) scale(1.5);
       z-index: 10;
       box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    .timeline-dot.hidden-species { display: none; }
+    /* The visible dot is 11px; this gives it a ~25px tap target without
+       changing how it looks. */
+    .timeline-dot::before {
+      content: '';
+      position: absolute;
+      inset: -7px;
+      border-radius: 50%;
     }
     .timeline-dot.other {
       background: var(--bg-paper) !important;
@@ -1014,6 +1055,7 @@
     <section class="timeline">
       <div class="timeline-head">
         <h2>観察記録 · Observation log</h2>
+        <div class="timeline-modes" id="timeline-modes"></div>
         <span class="range" id="timeline-range">—</span>
       </div>
       <div class="timeline-track">
@@ -1357,8 +1399,10 @@
         if (show && !map.hasLayer(marker)) marker.addTo(map);
         if (!show && map.hasLayer(marker)) map.removeLayer(marker);
       });
+      // Class, not inline display: drawTimeline() rebuilds these dots on
+      // every range change and would otherwise clobber the inline style.
       document.querySelectorAll('.timeline-dot').forEach(d => {
-        d.style.display = disabledSpecies.has(d.dataset.species) ? 'none' : '';
+        d.classList.toggle('hidden-species', disabledSpecies.has(d.dataset.species));
       });
       faceButtons.forEach(({ el, entry }) => {
         el.classList.toggle('dimmed', disabledSpecies.has(entry.species));
@@ -1455,40 +1499,118 @@
       });
     }
 
+    // ---- Timeline ---------------------------------------------------
+    // Entries cluster hard in the recent past (4 empty years, then most of
+    // the collection in the last two), so a single linear axis over the
+    // whole span wastes half its width and crushes the dense end. Default
+    // to the last 12 months and let the range be switched.
+    let timelineEntries = [];
+    let timelineMode = 'recent';
+
     function renderTimeline(entries) {
-      const sorted = [...entries].sort((a, b) => new Date(a.date) - new Date(b.date));
-      const minDate = new Date(sorted[0].date);
-      const maxDate = new Date(sorted[sorted.length - 1].date);
-      const span = maxDate - minDate || 86400000;
+      timelineEntries = [...entries].sort((a, b) => new Date(a.date) - new Date(b.date));
+      buildTimelineModes();
+      drawTimeline();
+
+      let resizeTimer;
+      addEventListener('resize', () => {
+        // Lane assignment is measured in pixels, so it has to be redone
+        // when the track changes width.
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(drawTimeline, 150);
+      });
+    }
+
+    function buildTimelineModes() {
+      const box = document.getElementById('timeline-modes');
+      const years = [...new Set(timelineEntries.map(e => e.date.slice(0, 4)))].sort().reverse();
+      const modes = [
+        { key: 'recent', label: '直近1年' },
+        ...years.map(y => ({ key: y, label: y })),
+        { key: 'all', label: 'すべて' },
+      ];
+      box.innerHTML = '';
+      modes.forEach(({ key, label }) => {
+        const b = document.createElement('button');
+        b.className = 'timeline-mode' + (key === timelineMode ? ' on' : '');
+        b.type = 'button';
+        b.textContent = label;
+        b.dataset.mode = key;
+        b.addEventListener('click', () => {
+          timelineMode = key;
+          box.querySelectorAll('.timeline-mode')
+             .forEach(el => el.classList.toggle('on', el.dataset.mode === key));
+          drawTimeline();
+        });
+        box.appendChild(b);
+      });
+    }
+
+    function timelineBounds() {
+      const first = new Date(timelineEntries[0].date);
+      const last = new Date(timelineEntries[timelineEntries.length - 1].date);
+      if (timelineMode === 'all') return [first, last];
+      if (timelineMode === 'recent') {
+        const from = new Date(last);
+        from.setFullYear(from.getFullYear() - 1);
+        return [from, last];
+      }
+      const y = Number(timelineMode);
+      return [new Date(y, 0, 1), new Date(y, 11, 31)];
+    }
+
+    function drawTimeline() {
+      const track = document.querySelector('.timeline-track');
+      track.querySelectorAll('.timeline-tick, .timeline-dot').forEach(el => el.remove());
+
+      const [from, to] = timelineBounds();
+      const span = to - from || 86400000;
       const pad = span * 0.06;
-      const start = new Date(minDate.getTime() - pad);
-      const end = new Date(maxDate.getTime() + pad);
+      const start = new Date(from.getTime() - pad);
+      const end = new Date(to.getTime() + pad);
       const total = end - start;
       const pct = (d) => ((d - start) / total) * 100;
+      const months = (end.getFullYear() - start.getFullYear()) * 12
+                   + end.getMonth() - start.getMonth();
 
-      const track = document.querySelector('.timeline-track');
-      const tickStart = new Date(start.getFullYear(), start.getMonth(), 1);
-      const tickEnd = new Date(end.getFullYear(), end.getMonth() + 1, 1);
-      const cur = new Date(tickStart);
-      while (cur <= tickEnd) {
-        if (cur >= start && cur <= end) {
+      // Above ~24 months there is no room for a label per month, so fall
+      // back to one per year.
+      const byYear = months > 24;
+      const cur = new Date(start.getFullYear(), byYear ? 0 : start.getMonth(), 1);
+      const step = byYear ? 12 : 1;
+      while (cur <= end) {
+        if (cur >= start) {
           const tick = document.createElement('div');
           tick.className = 'timeline-tick';
           tick.style.left = `${pct(cur)}%`;
-          const label = cur.getMonth() === 0
-            ? `${cur.getFullYear()}-01`
-            : `${String(cur.getMonth() + 1).padStart(2, '0')}`;
-          tick.textContent = label;
+          tick.textContent = (byYear || cur.getMonth() === 0)
+            ? String(cur.getFullYear())
+            : String(cur.getMonth() + 1).padStart(2, '0');
           track.appendChild(tick);
         }
-        cur.setMonth(cur.getMonth() + 1);
+        cur.setMonth(cur.getMonth() + step);
       }
 
-      entries.forEach((e) => {
+      // Stack dots that would otherwise land on the same pixel. Lanes rise
+      // from the baseline, so they never cover the tick labels.
+      const width = track.clientWidth || 1;
+      const LANE_GAP_PX = 15;
+      const LANE_RISE = 13;
+      const laneLastX = [];
+      const base = parseFloat(getComputedStyle(track).getPropertyValue('--tl-base')) || 42;
+
+      timelineEntries.forEach((e) => {
         const d = new Date(e.date);
+        if (d < from || d > to) return;
+        const x = (pct(d) / 100) * width;
+        let lane = laneLastX.findIndex(lx => x - lx >= LANE_GAP_PX);
+        if (lane === -1) { laneLastX.push(x); lane = laneLastX.length - 1; }
+        else laneLastX[lane] = x;
+
         const dot = document.createElement('div');
         dot.className = `timeline-dot ${e.category === 'other' ? 'other' : ''}`;
         dot.style.left = `${pct(d)}%`;
+        dot.style.top = `${Math.max(base - lane * LANE_RISE, 6)}px`;
         // Use the accent color for timeline dots (rust in light, purple in dark).
         // The map markers retain the positioning-method color for technical reading.
         dot.style.background = 'var(--rust)';
@@ -1499,8 +1621,17 @@
         track.appendChild(dot);
       });
 
-      document.getElementById('timeline-range').textContent = fmtRange(minDate, maxDate);
+      const shown = timelineEntries.filter(e => {
+        const d = new Date(e.date);
+        return d >= from && d <= to;
+      }).length;
+      document.getElementById('timeline-range').textContent =
+        `${fmtRange(from, to)} · ${shown}/${timelineEntries.length}`;
+
+      // Dots are rebuilt here, so re-apply the species filter to them.
+      applyFilters();
     }
+
 
     // ===========================================================
     // Entry point

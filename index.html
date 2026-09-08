@@ -430,8 +430,8 @@
 
     .faces {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
-      gap: 1.3rem 0.8rem;
+      grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+      gap: 1.15rem 0.6rem;
       align-items: start;
     }
     .face {
@@ -449,8 +449,8 @@
       -webkit-tap-highlight-color: transparent;
     }
     .face .thumb {
-      width: 76px;
-      height: 76px;
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
       object-fit: cover;
       display: block;
@@ -479,10 +479,8 @@
       font-size: 0.57rem;
       color: var(--ink-faint);
       letter-spacing: 0.04em;
-      margin-bottom: 0.2rem;
+      margin-bottom: 0.15rem;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
     .faces-caption {
       font-family: 'JetBrains Mono', monospace;
@@ -1297,18 +1295,23 @@
         btn.style.setProperty('--ring', cfg.color);
         btn.dataset.species = entry.species;
         btn.type = 'button';
+        // The tile shows only No. and species so more fit per row; the
+        // title lives in the header caption on hover and on the button
+        // itself for pointerless input.
+        btn.title = `No. ${pad3(entry.no)} · ${entry.name}`;
+        btn.setAttribute('aria-label', `No. ${pad3(entry.no)} ${speciesJp(entry.species)} ${entry.name}`);
         btn.innerHTML = `
           ${base
             ? `<img class="thumb" src="${esc(base)}.jpg" srcset="${esc(base)}.jpg 1x, ${esc(base)}@2x.jpg 2x"
                  alt="" loading="lazy" onerror="this.removeAttribute('src'); this.removeAttribute('srcset');">`
             : '<span class="thumb"></span>'}
           <span class="face-label">
-            <span class="no">No. ${pad3(entry.no)} · ${esc(speciesJp(entry.species))}</span>
-            ${esc(entry.name)}
+            <span class="no">No. ${pad3(entry.no)}</span>
+            ${esc(speciesJp(entry.species))}
           </span>
         `;
 
-        const show = () => { caption.textContent = `${esc(entry.species)} · ${entry.date}`; };
+        const show = () => { caption.textContent = `${esc(entry.name)} · ${entry.date}`; };
         const reset = () => { caption.textContent = defaultCaption; };
         btn.addEventListener('mouseenter', show);
         btn.addEventListener('focus', show);
